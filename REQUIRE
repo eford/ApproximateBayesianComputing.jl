@@ -6,10 +6,10 @@ Distances
 DistributedArrays
 StatsBase
 MultivariateStats
-# New requirements for 0.7
-Random
-Statistics
-Distributed
 Documenter
+# New requirements for 0.7, andreasnoack says they're "special" and shouldn't be included.
+# Random
+# Statistics
+# Distributed
 
 
