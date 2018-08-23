@@ -1,4 +1,5 @@
-using ABC
+using ApproximateBayesianComputing
+const ABC = ApproximateBayesianComputing
 using Distributions
 
 include(joinpath(Pkg.dir("ABC"),"src/composite.jl"))

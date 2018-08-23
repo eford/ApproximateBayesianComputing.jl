@@ -2,7 +2,7 @@ using Documenter, ABC
 
 makedocs(
     format = :html,
-    sitename = "ABC.jl",
+    sitename = "ApproximateBayesianComputing.jl",
     modules = [ABC],
 #    doctest = true, 
 #    clean = false,
@@ -15,7 +15,7 @@ makedocs(
 
 
 deploydocs(
-    repo   = "github.com/eford/ABC.jl.git",
+    repo   = "github.com/eford/ApproximateBayesianComputing.jl.git",
     julia  = "0.6", 
     target = "build",
     deps   = nothing,

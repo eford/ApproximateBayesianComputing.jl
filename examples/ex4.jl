@@ -1,5 +1,5 @@
-workspace()
-using ABC
+using ApproximateBayesianComputing
+const ABC = ApproximateBayesianComputing
 using Distributions
 using PDMats
 include(joinpath(Pkg.dir("ABC"),"src/composite.jl"))  # Not yet put in it's own package
