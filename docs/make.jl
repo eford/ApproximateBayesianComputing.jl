@@ -1,9 +1,9 @@
-using Documenter, ABC
+using Documenter, ApproximateBayesianComputing
 
 makedocs(
     format = :html,
     sitename = "ApproximateBayesianComputing.jl",
-    modules = [ABC],
+#    modules = [ApproximateBayesianComputing],
 #    doctest = true, 
 #    clean = false,
     pages = [

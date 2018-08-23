@@ -1,19 +1,21 @@
 using ApproximateBayesianComputing
 const ABC = ApproximateBayesianComputing
 using Distributions
-using Base.Test
 
-tic()
-srand(1234)
-include("test1.jl")
-@time @test test1()
-#= 
-err_code = test1()
-if err_code !=0 
-  println("# Test 1 FAILED with error code ", err_code)
+if VERSION >= v"0.7"
+  using Random
+  Random.seed!(1234)
+  using Statistics
+  using Distributed
+  using Test
+  #import Statistics: mean, median, maximum, minimum, quantile, std, var, cov, cor
 else
-  println("# Test 1 passed.")
-end 
-=#
-toc()
+  using Base.Test
+  srand(1234)
+end
+
+include("test1.jl")
+
+@time @test test1()
+
 
