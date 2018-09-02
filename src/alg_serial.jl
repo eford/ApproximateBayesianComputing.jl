@@ -60,7 +60,7 @@ function update_abc_pop_serial(plan::abc_pmc_plan_type, ss_true, pop::abc_popula
          #   prior_logpdf = prior_logpdf[1]
          #end
          # sampler_pdf calculation must match distribution used to update particle
-         sampler_logpdf = logpdf(sampler, theta_star )
+         sampler_logpdf = Distributions.logpdf(sampler, theta_star )
          #@inbounds new_pop.weights[i] = prior_pdf/sampler_pdf
          @inbounds new_pop.weights[i] = exp(prior_logpdf-sampler_logpdf)
          @inbounds new_pop.logpdf[i] = sampler_logpdf

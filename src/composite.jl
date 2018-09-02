@@ -17,10 +17,11 @@ else
 end
 
 import Base.length, Base.show
+using Distributions
 import Distributions.params
 import Distributions.mean, Distributions.mode, Distributions.var, Distributions.cov
 import Distributions.entropy, Distributions.insupport
-import Distributions._logpdf, Distributions._pdf!
+import Distributions._logpdf, Distributions.logpdf, Distributions._pdf!
 import Distributions._rand!
 #import Compat.view    # Until v0.5
 
@@ -33,7 +34,7 @@ export insupport, _logpdf, gradlogpdf, _rand!
 @compat abstract type AbstractCompositeContinuousDist <: ContinuousMultivariateDistribution end
 #@compat abstract type AbstractCompositeDiscreteDist <: DiscreteMultivariateDistribution  end # An idea, but not implemented yet
 
-immutable GenericCompositeContinuousDist <: AbstractCompositeContinuousDist
+struct GenericCompositeContinuousDist <: AbstractCompositeContinuousDist
     dist::Vector{ContinuousDistribution}
     indices::Vector{UnitRange{Int64}}
 
@@ -168,7 +169,17 @@ function insupport(d::GenericCompositeContinuousDist, x::AbstractVector{T})  whe
   return true
 end
 
-function _logpdf(d::GenericCompositeContinuousDist, x::AbstractArray{T,1}) where T<:Real
+function Distributions._logpdf(d::GenericCompositeContinuousDist, x::AbstractArray{T,2}) where T<:Real
+  sum = zeros(T,size(x,2)) 
+  for j in 1:size(x,1)
+     for i in 1:length(d.dist)
+       sum[j] += logpdf(d.dist[i],x[j,index(d,i)])
+     end
+  end
+  return sum      
+end
+
+function Distributions._logpdf(d::GenericCompositeContinuousDist, x::AbstractArray{T,1}) where T<:Real
   sum = zero(T) 
   for i in 1:length(d.dist)
     #sum += _logpdf(d.dist[i],x[index(d,i)])
@@ -187,7 +198,7 @@ end
 
 ### Sampling
 
-function _rand!(d::GenericCompositeContinuousDist, x::DenseVector{T}) where T<:Real
+function Distributions._rand!(d::GenericCompositeContinuousDist, x::DenseVector{T}) where T<:Real
     for i = 1:length(d.dist)
         _rand!(d.dist[i],view(x,index(d,i)))
     end
