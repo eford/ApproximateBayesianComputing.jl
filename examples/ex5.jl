@@ -140,6 +140,9 @@ function make_proposal_dist_multidim_beta(theta::AbstractArray{Float64,2}, weigh
        if any(alpha_beta.<=zero(T))
           alpha_beta = fit_beta_mle(x, w=w, init_guess=alpha_beta, verbose=true)
        end
+       if any(alpha_beta.<=zero(T))
+          alpha_beta = ones(T,2)
+       end
        Beta(alpha_beta[1], alpha_beta[2])
   end
   function make_beta_transformed(x::AbstractArray{T,1}, w::AbstractArray{T,1}; xmin::T=zero(T), xmax::T=one(T),
@@ -148,6 +151,9 @@ function make_proposal_dist_multidim_beta(theta::AbstractArray{Float64,2}, weigh
        alpha_beta = (var < mean*(1.0-mean)) ? [mom_alpha(mean, var), mom_beta(mean,var)] : ones(T,2)
        if any(alpha_beta.<=zero(T))
           alpha_beta = fit_beta_mle(x, w=w, init_guess=alpha_beta, verbose=true)
+       end
+       if any(alpha_beta.<=zero(T))
+          alpha_beta = ones(T,2)
        end
        LinearTransformedBeta(alpha_beta[1], alpha_beta[2], xmin=xmin, xmax=xmax)
   end
