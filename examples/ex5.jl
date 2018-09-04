@@ -48,12 +48,11 @@ function gen_data(theta::Array, n::Integer = num_data_default)
 end
 
 function calc_mean_per_bin(data::Array{Int64,2})
-   mean(data,dims=2)
+   vec(mean(data,dims=2))
 end
 
 calc_dist_l1(x::Array{Float64},y::Array{Float64}) = sum(abs.(x.-y))
 calc_dist_l2(x::Array{Float64},y::Array{Float64}) = sum(abs2.(x.-y))
-
 
 
 #using Distributions 
@@ -80,6 +79,20 @@ function trigamma(x::T) where T<: Real
    x >= 4 ? trigamma_x_gr_4(x) : trigamma_x_lt_4(x)
 end
 
+
+function var_weighted(x::AbstractArray{Float64,1}, w::AbstractArray{Float64,1} )
+  #println("# size(x) = ",size(x), " size(w) = ", size(w)); flush(stdout)
+  @assert(length(x)==length(w) )
+  sumw = sum(w)
+  @assert( sumw > 0. )
+  if(sumw!= 1.0)
+     w /= sum(w)
+     sumw = 1.0
+  end
+  sumw2 = sum(w.*w)
+  xbar =  sum(x.*w)
+  covar = sum((x.-xbar).*(x.-xbar) .* w) * sumw/(sumw*sumw-sumw2)
+end
 
 function make_proposal_dist_multidim_beta(theta::AbstractArray{Float64,2}, weights::AbstractArray{Float64,1},  tau_factor::Float64; verbose::Bool = false)
   
@@ -135,43 +148,62 @@ function make_proposal_dist_multidim_beta(theta::AbstractArray{Float64,2}, weigh
   end
   function make_beta(x::AbstractArray{T,1}, w::AbstractArray{T,1}; 
               mean::T = Statistics.mean(x,AnalyticWeights(w)), 
-              var::T = Statistics.varm(x,xbar,AnalyticWeights(w)) ) where T<:Real
+              var::T = Statistics.varm(x,xbar,AnalyticWeights(w)), tau_factor::T=one(T) ) where T<:Real
        alpha_beta = (var < mean*(1.0-mean)) ? [mom_alpha(mean, var), mom_beta(mean,var)] : ones(T,2)
        if any(alpha_beta.<=zero(T))
           alpha_beta = fit_beta_mle(x, w=w, init_guess=alpha_beta, verbose=true)
        end
        if any(alpha_beta.<=zero(T))
           alpha_beta = ones(T,2)
+       else 
+          alpha_beta ./= tau_factor
        end
        Beta(alpha_beta[1], alpha_beta[2])
   end
   function make_beta_transformed(x::AbstractArray{T,1}, w::AbstractArray{T,1}; xmin::T=zero(T), xmax::T=one(T),
               mean::T = Statistics.mean(x,AnalyticWeights(w)), 
-              var::T = Statistics.varm(x,xbar,AnalyticWeights(w)) ) where T<:Real
+              var::T = Statistics.varm(x,xbar,AnalyticWeights(w)), tau_factor::T=one(T) ) where T<:Real
        alpha_beta = (var < mean*(1.0-mean)) ? [mom_alpha(mean, var), mom_beta(mean,var)] : ones(T,2)
        if any(alpha_beta.<=zero(T))
           alpha_beta = fit_beta_mle(x, w=w, init_guess=alpha_beta, verbose=true)
        end
        if any(alpha_beta.<=zero(T))
           alpha_beta = ones(T,2)
+       else 
+          alpha_beta ./= tau_factor
        end
        LinearTransformedBeta(alpha_beta[1], alpha_beta[2], xmin=xmin, xmax=xmax)
   end
  
   theta_mean =  sum(theta.*weights',dims=2) # weighted mean for parameters
-  tau = tau_factor*ABC.var_weighted(theta'.-theta_mean',weights)  # scaled, weighted covar for parameters
-
+  theta_var = ABC.var_weighted(theta'.-theta_mean',weights)  # scaled, weighted covar for parameters
+  tau_factor_indiv = fill(tau_factor,length(theta_var))
+  if verbose
+     println("total: ",theta_mean[1]," ",theta_var[1])
+  end
+  for i in 2:size(theta,1)
+    mean_ratio = sum(theta[1,:].*theta[i,:].*weights) /(theta_mean[1]*theta_mean[i]) # weighted mean for parameters
+    var_ratio = var_weighted(vec(theta[1,:].*theta[i,:]).-(theta_mean[1]*theta_mean[i]),weights)/(2 * theta_mean[1] * theta_var[i]) # scaled, weighted covar for parameters
+    if verbose
+       println("i=",i,": ",theta_mean[i]," ",theta_var[i]," ratios: ",mean_ratio, " ",var_ratio)
+    end
+    var_ratio  = var_ratio  >= one(var_ratio)  ? var_ratio  : one(var_ratio)
+    tau_factor_indiv[i] = tau_factor*var_ratio
+  end
+  if verbose
+     flush(stdout)
+  end
   #=
   println("mean= ",theta_mean)
-  println("var= ",tau)
+  println("var= ",theta_var)
   for i in 1:length(theta_mean)
-     println("a= ",alpha(theta_mean[i],tau[i]), "  b= ",beta(theta_mean[i],tau[i]))
+     println("a= ",alpha(theta_mean[i],tau_factor*theta_var[i]), "  b= ",beta(theta_mean[i],tau_factor*theta_var[i]))
   end
   =#
-
+  
   dist = ApproximateBayesianComputing.CompositeDistributions.CompositeDist( vcat(
-         make_beta_transformed(theta[1,:], weights, xmin=0.0, xmax=max_rate, mean = theta_mean[1]/max_rate, var = tau[1]/max_rate^2), 
-         ContinuousDistribution[ make_beta(theta[i,:], weights, mean = theta_mean[i], var = tau[i]) for i in 2:size(theta,1) ] ))
+         make_beta_transformed(theta[1,:], weights, xmin=0.0, xmax=max_rate, mean=theta_mean[1]/max_rate, var=theta_var[1]/max_rate^2, tau_factor=tau_factor_indiv[1]), 
+         ContinuousDistribution[ make_beta(theta[i,:], weights, mean=theta_mean[i], var=theta_var[i], tau_factor=tau_factor_indiv[i]) for i in 2:size(theta,1) ] ))
 
 end
 
@@ -179,16 +211,6 @@ function make_proposal_dist_multidim_beta(pop::abc_population_type, tau_factor::
 	make_proposal_dist_multidim_beta(pop.theta, pop.weights, tau_factor, verbose=verbose)
 end
 
-
-
-#=
-function mom_alpha(x_bar::T, v_bar::T) where T<: Real
-   x_bar * (((x_bar * (1 - x_bar)) / v_bar) - 1)
-end
-function mom_beta(x_bar::T, v_bar::T) where T<: Real
-   (1 - x_bar) * (((x_bar * (1 - x_bar)) / v_bar) - 1)
-end
-=#
 
 
 # Tell ABC what it needs to know for a simulation
