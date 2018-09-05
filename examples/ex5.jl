@@ -17,9 +17,9 @@ function normalize_theta!(theta::Array)
 end
 
 # Set Prior for Population Parameters
-max_rate = 3.0
-nbins = 8
-theta_true = vcat(max_rate*rand(),rand(nbins))
+max_rate = 3.
+nbins = 13
+theta_true = vcat(max_rate*0.1,rand(nbins))
 normalize_theta!(theta_true)
 
 param_prior = CompositeDist(vcat(Uniform(0.0,max_rate),ContinuousDistribution[Uniform(0.0,1.0) for i in 1:nbins]))
@@ -51,8 +51,8 @@ function calc_mean_per_bin(data::Array{Int64,2})
    vec(mean(data,dims=2))
 end
 
-calc_dist_l1(x::Array{Float64},y::Array{Float64}) = sum(abs.(x.-y))
-calc_dist_l2(x::Array{Float64},y::Array{Float64}) = sum(abs2.(x.-y))
+calc_dist_l1(x::Array{Float64},y::Array{Float64}) = sum(abs.(x.-y))/length(x) + abs(sum(x)-sum(y))
+calc_dist_l2(x::Array{Float64},y::Array{Float64}) = sum(abs2.(x.-y))/length(x) + abs2(sum(x)-sum(y))
 
 
 #using Distributions 
@@ -156,7 +156,9 @@ function make_proposal_dist_multidim_beta(theta::AbstractArray{Float64,2}, weigh
        if any(alpha_beta.<=zero(T))
           alpha_beta = ones(T,2)
        else 
-          alpha_beta ./= tau_factor
+          if minimum(alpha_beta)>1.5*tau_factor && sum(alpha_beta)>=20.0*tau_factor
+             alpha_beta ./= tau_factor
+          end
        end
        Beta(alpha_beta[1], alpha_beta[2])
   end
@@ -170,7 +172,9 @@ function make_proposal_dist_multidim_beta(theta::AbstractArray{Float64,2}, weigh
        if any(alpha_beta.<=zero(T))
           alpha_beta = ones(T,2)
        else 
-          alpha_beta ./= tau_factor
+          if minimum(alpha_beta)>1.5*tau_factor && sum(alpha_beta)>=20.0*tau_factor
+             alpha_beta ./= tau_factor
+          end
        end
        LinearTransformedBeta(alpha_beta[1], alpha_beta[2], xmin=xmin, xmax=xmax)
   end
@@ -214,7 +218,7 @@ end
 
 
 # Tell ABC what it needs to know for a simulation
-abc_plan = abc_pmc_plan_type(gen_data,calc_mean_per_bin,calc_dist_l1, param_prior; is_valid=is_valid,normalize=normalize_theta!,make_proposal_dist=make_proposal_dist_multidim_beta,tau_factor=1.0,target_epsilon=0.01*nbins,num_max_attempt=1000);
+abc_plan = abc_pmc_plan_type(gen_data,calc_mean_per_bin,calc_dist_l1, param_prior; is_valid=is_valid,normalize=normalize_theta!,make_proposal_dist=make_proposal_dist_multidim_beta,epsilon_reduction_factor=0.501,tau_factor=1.1,target_epsilon=0.00001*nbins,num_max_attempt=1000);
 
 # Generate "true/observed data" and summary statistics
 data_true = abc_plan.gen_data(theta_true)
