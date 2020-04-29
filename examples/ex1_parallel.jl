@@ -1,9 +1,11 @@
+@warn "Untested since moved to julia v1.0"
+
 if length(ARGS) >= 1
   nw = parse(ARGS[1])
   if nw >1
      addprocs(nw)
   end
-else 
+else
   addprocs()
 end
 
@@ -37,7 +39,7 @@ import ABC; @everywhere using ABC
 @time pop_out = run_abc(abc_plan,ss_true;verbose=true,in_parallel=in_parallel);
 
 
-#= 
+#=
 # Optional plotting of results
 using PyPlot
 
@@ -51,7 +53,7 @@ limit = 1.0
 x = collect(linspace(theta_true[1]-limit,theta_true[1]+limit,num_grid_x));
 y = collect(linspace(theta_true[2]-limit,theta_true[2]+limit,num_grid_y));
 z = zeros(Float64,(num_param,length(x),length(y)))
-for i in 1:length(x), j in 1:length(y) 
+for i in 1:length(x), j in 1:length(y)
     z[1,i,j] = x[i]
     z[2,i,j] = y[j]
 end

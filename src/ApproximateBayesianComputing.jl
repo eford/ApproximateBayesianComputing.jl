@@ -1,6 +1,6 @@
 """
    ApproximateBayesianComputing
-Module providing 
+Module providing
    types (abc_pmc_plan_type, abc_population_type) and methods (generate_theta, init_abc, update_abc_pop, run_abc) for using Approximate Bayesian Computing
 """
 module ApproximateBayesianComputing
@@ -15,11 +15,13 @@ using Compat
 if VERSION >= v"0.7"
   using Statistics
   using Distributed
+  import Base: length
   import Statistics: mean, median, maximum, minimum, quantile, std, var, cov, cor
+  import LinearAlgebra.isposdef
 else
   #import Base: sum, mean, std
   import Compat: sum, mean, std
-  import Base: median, maximum, minimum, quantile, var, cov, cor
+  import Base: length, median, maximum, minimum, quantile, var, cov, cor
   using Compat.Statistics
   using Compat.Distributed
 end
@@ -64,4 +66,3 @@ include("beta_linear_transformed.jl")
 export TransformedBetaDistributions
 
 end # module
-

@@ -2,8 +2,8 @@ using ApproximateBayesianComputing
 const ABC = ApproximateBayesianComputing
 using Distributions
 
-include(joinpath(Pkg.dir("ABC"),"src/composite.jl"))
-using CompositeDistributions
+#include(joinpath(Pkg.dir("ABC"),"src/composite.jl"))
+import ApproximateBayesianComputing.CompositeDistributions.CompositeDist
 import Compat.view
 
 # Set Prior for Population Parameters
@@ -13,15 +13,15 @@ param_prior = CompositeDist( ContinuousDistribution[d1,d2] )
 
 # Code to generate simulated data given array of model parameters
 num_data_default = 100
-num_outputs = length(rand(d1))+length(rand(d2)) 
+num_outputs = length(rand(d1))+length(rand(d2))
 function gen_data(theta::Array, n::Integer = num_data_default)
-  data = Array{Float64}(num_outputs,n)
+  data = Array{Float64,2}(undef,num_outputs,n)
   data[1,:] = rand(Rayleigh(theta[1]),n)
   data[2:num_outputs,:] = rand(MvNormal(theta[2:num_outputs],ones(num_outputs-1)),n)
   return data
 end
 
-# Function to adjust originally proposed model parameters, so that they will be valid 
+# Function to adjust originally proposed model parameters, so that they will be valid
 function normalize_theta13_pos!(theta::Array)
  theta[1] = abs(theta[1])
  theta[3] = abs(theta[3])
@@ -37,7 +37,7 @@ end
 theta_true = [0.3, 0.0, 1.0, 2.0, 3.0]
 
 # Tell ABC what it needs to know for a simulation
-abc_plan = abc_pmc_plan_type(gen_data,ABC.calc_summary_stats_mean_var,ABC.calc_dist_max, param_prior; is_valid=is_valid_theta13_pos,num_max_attempt=10000, 
+abc_plan = abc_pmc_plan_type(gen_data,ABC.calc_summary_stats_mean_var,ABC.calc_dist_max, param_prior; is_valid=is_valid_theta13_pos,num_max_attempt=10000,
  #  make_proposal_dist = ABC.make_proposal_dist_gaussian_full_covar, adaptive_quantiles=true);
  #  make_proposal_dist = ABC.make_proposal_dist_gaussian_diag_covar, adaptive_quantiles=true);
  #  make_proposal_dist = ABC.make_proposal_dist_gaussian_rand_subset_diag_covar, adaptive_quantiles=true);
@@ -70,7 +70,7 @@ limit = 1.0
 x = collect(linspace(theta_true[1]-limit,theta_true[1]+limit,num_grid_x));
 y = collect(linspace(theta_true[2]-limit,theta_true[2]+limit,num_grid_y));
 z = zeros(Float64,(num_param,length(x),length(y)))
-for i in 1:length(x), j in 1:length(y) 
+for i in 1:length(x), j in 1:length(y)
     z[1,i,j] = x[i]
     z[2,i,j] = y[j]
 end

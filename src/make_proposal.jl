@@ -1,5 +1,5 @@
 #if !@isdefined  PDMats
-#   using PDMats 
+#   using PDMats
 #end
 
 function calc_mean_stddev(pop::abc_population_type) #; param_active = nothing)
@@ -32,7 +32,7 @@ function make_proposal_dist_gaussian_full_covar(pop::abc_population_type, tau_fa
   return sampler
 end
 
-function make_proposal_dist_gaussian_diag_covar(pop::abc_population_type, tau_factor::Float64; verbose::Bool = false, # param_active = nothing, 
+function make_proposal_dist_gaussian_diag_covar(pop::abc_population_type, tau_factor::Float64; verbose::Bool = false, # param_active = nothing,
          max_maha_distsq_per_dim::Real = 4.0)
   theta_mean =  sum(pop.theta.*pop.weights',dims=2) # weighted mean for parameters
   tau = tau_factor*var_weighted(pop.theta'.-theta_mean',pop.weights)  # scaled, weighted covar for parameters
@@ -119,7 +119,7 @@ function make_proposal_dist_gaussian_rand_subset_neighbors_diag_covar(pop::abc_p
          if param_active[i] > nparam
             param_active[i] -= nparam
          end
-     end 
+     end
      println("# Proposals to perturb parameters: ", param_active)
   end
   make_proposal_dist_gaussian_subset_diag_covar(pop,tau_factor, verbose=verbose, param_active=param_active )
@@ -136,7 +136,7 @@ function make_proposal_dist_gaussian_rand_subset_neighbors_full_covar(pop::abc_p
          if param_active[i] > nparam
             param_active[i] -= nparam
          end
-     end 
+     end
      println("# Proposals to perturb parameters: ", param_active)
   end
   make_proposal_dist_gaussian_subset_full_covar(pop,tau_factor, verbose=verbose, param_active=param_active )
@@ -158,7 +158,7 @@ function make_proposal_dist_gaussian_cycle_subset_neighbors_diag_covar(pop::abc_
          if param_active[i] > nparam
             param_active[i] -= nparam
          end
-     end 
+     end
      println("# Proposals to perturb parameters: ", param_active)
      make_proposal_dist_gaussian_cycle_subset_neighbors_param_idx_next += num_param_active
      if make_proposal_dist_gaussian_cycle_subset_neighbors_param_idx_next > nparam
@@ -181,7 +181,7 @@ function make_proposal_dist_gaussian_cycle_subset_neighbors_full_covar(pop::abc_
          if param_active[i] > nparam
             param_active[i] -= nparam
          end
-     end 
+     end
      println("# Proposals to perturb parameters: ", param_active)
      make_proposal_dist_gaussian_cycle_subset_neighbors_param_idx_next += num_param_active
      if make_proposal_dist_gaussian_cycle_subset_neighbors_param_idx_next > nparam
@@ -241,5 +241,3 @@ function make_proposal_dist_gaussian_cycle_zoomed_subset_neighbors_diag_covar(po
   end
   make_proposal_dist_gaussian_subset_zoomed_diag_covar(pop,tau_factor, verbose=verbose, param_active=param_active, inactive_scale_factor=inactive_scale_factor, max_maha_distsq_per_dim=max_maha_distsq_per_dim )
 end
-
-

@@ -18,6 +18,7 @@ end
 
 import Base.length, Base.show
 using Distributions
+import Random.AbstractRNG
 import Distributions.params
 import Distributions.mean, Distributions.mode, Distributions.var, Distributions.cov
 import Distributions.entropy, Distributions.insupport
@@ -213,16 +214,17 @@ function _rand!(d::GenericCompositeContinuousDist, x::DenseMatrix{T}) where T<:R
     return x
 end
 =#
-function Distributions._rand!(d::GenericCompositeContinuousDist, x::AbstractArray{T,1}) where T<:Real
+function Distributions._rand!(rng::AbstractRNG, d::GenericCompositeContinuousDist, x::AbstractArray{T,1}) where T<:Real
     for i = 1:length(d.dist)
-        _rand!(d.dist[i],view(x,index(d,i)))
+        #_rand!(rng,d.dist[i],view(x,index(d,i)))
+        x[index(d,i)] = rand(rng,d.dist[i])
     end
     return x
 end
 
-function _rand!(d::GenericCompositeContinuousDist, x::AbstractArray{T,2}) where T<:Real
+function _rand!(rng::AbstractRNG, d::GenericCompositeContinuousDist, x::AbstractArray{T,2}) where T<:Real
     for i = 1:length(d.dist)
-        _rand!(d.dist[i],view(x,index(d,i),:))   # Check got dimensions right
+        _rand!(rng,d.dist[i],view(x,index(d,i),:))   # Check got dimensions right
     end
     return x
 end

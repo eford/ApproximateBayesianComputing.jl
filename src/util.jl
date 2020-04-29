@@ -54,7 +54,7 @@ end
 function make_matrix_pd(A::AbstractArray{Float64,2}; epsabs::Float64 = 0.0, epsfac::Float64 = 1.0e-6)
   @assert(size(A,1)==size(A,2))
   println("make_matrix_pd input: ", A)
-  flush(STDOUT)
+  flush(Base.stdout)
   B = 0.5*(A+A')
   itt = 1
   while !isposdef(B)
@@ -64,7 +64,7 @@ function make_matrix_pd(A::AbstractArray{Float64,2}; epsabs::Float64 = 0.0, epsf
 	eigvalB[.!pos_eigval_idx] = neweigval
 	B = eigvecB *diagm(eigvalB)*eigvecB'
 	println(itt,": ",B)
-        flush(STDOUT)
+        flush(Base.stdout)
         #cholB = chol(B)
 	itt +=1
 	if itt>size(A,1)
@@ -94,20 +94,20 @@ end
 
 # Common summary stats and distances
 function calc_summary_stats_mean_var(x::AbstractArray{T,2} )  where T <:Real
- @inbounds m = mean(x,dims=2); 
- @inbounds v = var(x,2,mean=vec(m)); 
+ @inbounds m = mean(x,dims=2);
+ @inbounds v = var(x,dims=2,mean=vec(m));
  return vcat(m, v)
 end
 
 function calc_summary_stats_mean_var(x::AbstractArray{T,1} )  where T <:Real
- @inbounds m = mean(x); 
- @inbounds v = var(x,mean=m); 
+ @inbounds m = mean(x);
+ @inbounds v = var(x,mean=m);
  return vcat(m, v)
 end
 
 calc_dist_max(x::AbstractArray{Float64},y::AbstractArray{Float64}) = maximum(abs.(x.-y))
 dist_scale = Array{Float64}(undef,0)
-calc_scaled_dist_max(x::AbstractArray{Float64,1},y::AbstractArray{Float64,1}, scale::AbstractArray{Float64,1} = dist_scale) = maximum(abs(x.-y)./scale)
+calc_scaled_dist_max(x::AbstractArray{Float64,1},y::AbstractArray{Float64,1}, scale::AbstractArray{Float64,1} = dist_scale) = maximum(abs.(x.-y)./scale)
 
 function set_distance_scale(ds::Array{Float64,1})
   global dist_scale
@@ -117,9 +117,9 @@ function set_distance_scale( plan::abc_pmc_plan_type, theta::AbstractArray{Float
                   ss::AbstractArray{T,1} = plan.calc_summary_stats(plan.gen_data(theta)) ) where T
   dist = Array{Float64}(undef,length(ss),num_draw)
   for i in 1:num_draw
-    dist[:,i] = abs(ss.-plan.calc_summary_stats(plan.gen_data(theta)))
+    dist[:,i] = abs.(ss.-plan.calc_summary_stats(plan.gen_data(theta)))
   end
-  set_distance_scale(vec(median(dist,2)))
+  set_distance_scale(vec(median(dist,dims=2)))
 end
 
 
@@ -152,4 +152,3 @@ function normalize_vector_of_log_values(x::Vector{Float64})
       logsum = logsumexp(x)
       param_vector = exp(param_vector-logsum)
 end
-

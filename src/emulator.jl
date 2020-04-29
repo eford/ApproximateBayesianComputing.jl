@@ -1,5 +1,5 @@
 using MultivariateStats
-using PDMats
+#using PDMats
 using Distances
 
 type emulator_gp_type{T<:Real}

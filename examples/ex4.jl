@@ -2,13 +2,15 @@ using ApproximateBayesianComputing
 const ABC = ApproximateBayesianComputing
 using Distributions
 using PDMats
-include(joinpath(Pkg.dir("ABC"),"src/composite.jl"))  # Not yet put in it's own package
-using CompositeDistributions
+import LinearAlgebra.diagm
+import ApproximateBayesianComputing.CompositeDistributions.CompositeDist
+import Statistics
+import SpecialFunctions.erf
 import Compat.view # For backward compatability with v0.4
 
 # Set HyperPrior for Population Parameters
 param_prior_rate = Gamma(1.0,1.0)
- param_prior_mean  = MvLogNormal(log([10.0, 10.0]), diagm(log([10.0,10.0])))
+ param_prior_mean  = MvLogNormal(log.([10.0, 10.0]), diagm(log.([10.0,10.0])))
  param_prior_covar_diag = MvLogNormal(zeros(2),ones(2))
  param_prior_cor = MvNormal(zeros(1),ones(1));
  param_prior = CompositeDist( ContinuousDistribution[param_prior_rate,param_prior_mean,param_prior_covar_diag,param_prior_cor] )
@@ -29,11 +31,11 @@ param_prior_rate = Gamma(1.0,1.0)
  end
 
 function detection_prob_snr_term(snr::Real) # Detection probability as a function of signal-to-noise ratio
-  const sig =  1.0
-  const snr_thresh = 7.1
-  const snr_detect_never =  3.0
-  const snr_detect_always = 10.0
-  const sqrt2 = sqrt(2.0)
+  sig =  1.0
+  snr_thresh = 7.1
+  snr_detect_never =  3.0
+  snr_detect_always = 10.0
+  sqrt2 = sqrt(2.0)
   pdet = 0.0
   if snr > snr_detect_always
      pdet = 1.0
@@ -44,8 +46,8 @@ function detection_prob_snr_term(snr::Real) # Detection probability as a functio
  end
 
  function detection_prob_geometry_term(period::Real) # Transit probability as a function of orbital geometry
-    const radius_star = 0.005
-    const days_in_year = 365.2425
+    radius_star = 0.005
+    days_in_year = 365.2425
     a = (period/days_in_year)^(2//3)
     prob_geometric = min(1.0,radius_star/a)
  end
@@ -94,18 +96,18 @@ function calc_summary_stats_mean_stddev_detected(data::Tuple{Array{Float64,2},Bi
   detected = data[2]
   @assert size(period_snr,1) == 2
   @assert size(period_snr,2) == length(detected)
-  num_detected = length(find(detected))
+  num_detected = length(findall(detected))
   if num_detected<1
     return [0/num_star_default,Inf,Inf,Inf,Inf,Inf]
   end
-  mean_log_period = mean(log(period_snr[1,detected]))
-  mean_log_snr = mean(log(period_snr[2,detected]))
+  mean_log_period = mean(log.(period_snr[1,detected]))
+  mean_log_snr = mean(log.(period_snr[2,detected]))
   if num_detected<2
      return [num_detected/num_star_default,mean_log_period,Inf,mean_log_snr,Inf,Inf]
   end
-  stddev_log_period = stdm(log(period_snr[1,detected]),mean_log_period)
-  stddev_log_snr = stdm(log(period_snr[2,detected]),mean_log_snr)
-  covar_cross = sum( (log(period_snr[1,detected]).-mean_log_period) .* (log(period_snr[2,detected]).-mean_log_snr) )/(length(find(detected))-1)
+  stddev_log_period = Statistics.stdm(log.(period_snr[1,detected]),mean_log_period)
+  stddev_log_snr = Statistics.stdm(log.(period_snr[2,detected]),mean_log_snr)
+  covar_cross = sum( (log.(period_snr[1,detected]).-mean_log_period) .* (log.(period_snr[2,detected]).-mean_log_snr) )/(length(findall(detected))-1)
   cor =  covar_cross / ( stddev_log_period*stddev_log_snr*(num_detected-1) )
   #cor_F = atanh(cor)*max(1,sqrt(num_detected-3))
   #c4 = calc_c4(num_detected)
@@ -211,4 +213,3 @@ plot_abc_posterior(theta_plot,1)
 med_dist = median(dist_plot)
 plot_abc_posterior(theta_plot[:,find(dist_plot.<=med_dist)],1)
 =#
-

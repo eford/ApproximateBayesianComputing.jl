@@ -1,6 +1,6 @@
-# test1.jl 
+# test1.jl
 # based on ex1.jl
-using Distributions
+import Distributions
 
 function test1()
 println("# Starting Test 1")
@@ -13,11 +13,11 @@ is_valid_theta2_pos(theta::Array) =  theta[2]>0.0 ? true : false
 theta_true = [0.0, 1.0]
 param_prior = Distributions.MvNormal(theta_true,ones(length(theta_true)))
 
-abc_plan = abc_pmc_plan_type(gen_data_normal,ABC.calc_summary_stats_mean_var,ABC.calc_dist_max, param_prior; 
+abc_plan = abc_pmc_plan_type(gen_data_normal,ABC.calc_summary_stats_mean_var,ABC.calc_dist_max, param_prior;
                              target_epsilon=0.01,is_valid=is_valid_theta2_pos,num_max_attempt=10000);
 
 num_param = 2
-# Generate "observed" data 
+# Generate "observed" data
 data_obs = abc_plan.gen_data(theta_true)
 ss_obs = abc_plan.calc_summary_stats(data_obs)
 println("# Setting 'true' parameters of theta= ",theta_true)

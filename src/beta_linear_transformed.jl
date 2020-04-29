@@ -15,21 +15,21 @@ else
 end
 
 import Base.length, Base.show
-using Distributions 
+using Distributions
 import Distributions.params, Distributions.@check_args
-import Distributions.rand 
+import Distributions.rand
 import Distributions.pdf, Distributions.logpdf, Distributions.cdf, Distributions.gradlogpdf
 import Distributions.quantile, Distributions.insupport
 import Distributions.minimum, Distributions.maximum
-import Distributions.mean, Distributions.var 
-import Distributions.mode, Distributions.modes 
+import Distributions.mean, Distributions.var
+import Distributions.mode, Distributions.modes
 
 export LinearTransformedBeta
 export params, rand, pdf, logpdf, cdf, gradlogpdf, quantile, insupport
 export minimum, maximum, mean, var, mode, modes
 
 
-struct LinearTransformedBeta{T<:Real} <: ContinuousUnivariateDistribution 
+struct LinearTransformedBeta{T<:Real} <: ContinuousUnivariateDistribution
     dist::Beta{T}
     xmin::T
     xmax::T
@@ -60,11 +60,11 @@ params(d::LinearTransformedBeta) = (d.dist.α, d.dist.β,d.xmin,d.xmax)
 rand(d::LinearTransformedBeta) = d.xmin+(d.xmax-d.xmin)*rand(d.dist)
 #sampler
 
-### Evaluation 
+### Evaluation
 pdf(d::LinearTransformedBeta, x::T) where T<:Real = pdf(d.dist, (x.-d.xmin)./(d.xmax-d.xmin) )
 logpdf(d::LinearTransformedBeta, x::T) where T<:Real = logpdf(d.dist, (x.-d.xmin)./(d.xmax-d.xmin) )
-cdf(d::LinearTransformedBeta, q::T) where T<:Real = cdf(d.dist, (x.-d.xmin)./(d.xmax-d.xmin) )
-quantile(d::LinearTransformedBeta, q::T) where T<:Real = quantile(d.dist, (x.-d.xmin)./(d.xmax-d.xmin) )
+cdf(d::LinearTransformedBeta, q::T) where T<:Real = cdf(d.dist, (q.-d.xmin)./(d.xmax-d.xmin) )
+quantile(d::LinearTransformedBeta, q::T) where T<:Real = quantile(d.dist, (q.-d.xmin)./(d.xmax-d.xmin) )
 minimum(d::LinearTransformedBeta) = d.xmin
 maximum(d::LinearTransformedBeta) = d.xmax
 

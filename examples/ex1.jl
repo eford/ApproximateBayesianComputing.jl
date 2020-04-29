@@ -1,8 +1,9 @@
 using ApproximateBayesianComputing
 const ABC = ApproximateBayesianComputing
 using Distributions
+using Random
 
-srand(1234)
+Random.seed!(1234)
 
 # Set Prior for Population Parameters
 theta_true = [0.0, 1.0]
@@ -30,7 +31,7 @@ ss_true = abc_plan.calc_summary_stats(data_true)
 @time pop_out = run_abc(abc_plan,ss_true;verbose=true);
 
 
-#= 
+#=
 # Optional plotting of results
 using PyPlot
 
@@ -44,7 +45,7 @@ limit = 1.0
 x = collect(linspace(theta_true[1]-limit,theta_true[1]+limit,num_grid_x));
 y = collect(linspace(theta_true[2]-limit,theta_true[2]+limit,num_grid_y));
 z = zeros(Float64,(num_param,length(x),length(y)))
-for i in 1:length(x), j in 1:length(y) 
+for i in 1:length(x), j in 1:length(y)
     z[1,i,j] = x[i]
     z[2,i,j] = y[j]
 end

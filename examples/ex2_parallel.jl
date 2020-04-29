@@ -1,3 +1,5 @@
+@warn "Untested since moved to julia v1.0"
+
 if length(ARGS) >= 1
   nw = parse(ARGS[1])
   if nw >1
@@ -29,7 +31,7 @@ import ABC; @everywhere using ABC
   return data
 end
 
-# Function to adjust originally proposed model parameters, so that they will be valid 
+# Function to adjust originally proposed model parameters, so that they will be valid
 @everywhere function normalize_theta13_pos!(theta::Array)
  theta[1] = abs(theta[1])
  theta[3] = abs(theta[3])
@@ -70,7 +72,7 @@ limit = 1.0
 x = collect(linspace(theta_true[1]-limit,theta_true[1]+limit,num_grid_x));
 y = collect(linspace(theta_true[2]-limit,theta_true[2]+limit,num_grid_y));
 z = zeros(Float64,(num_param,length(x),length(y)))
-for i in 1:length(x), j in 1:length(y) 
+for i in 1:length(x), j in 1:length(y)
     z[1,i,j] = x[i]
     z[2,i,j] = y[j]
 end
