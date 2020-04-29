@@ -1,5 +1,7 @@
 name = "ApproximateBayesianComputing"
 uuid = "2bb279fe-b7da-5b2b-8ce2-4088845e51bb"
+authors = ["Eric Ford <eford@psu.edu>"]
+version = "0.0.3"
 
 [deps]
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
