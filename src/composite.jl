@@ -60,7 +60,7 @@ length(d::GenericCompositeContinuousDist, idx::Integer) = length(d.dist[idx])
 length(d::GenericCompositeContinuousDist)  = d.indices[end].stop
 
 params(d::GenericCompositeContinuousDist, idx::Integer) = params(d.dist[idx])
-function params(d::GenericCompositeContinuousDist) 
+function params(d::GenericCompositeContinuousDist)
   n = length(d)
   p = Array{Tuple}(undef,n)
   for i in 1:length(d.dist)
@@ -74,13 +74,13 @@ function set_params!(d::GenericCompositeContinuousDist, i::Integer, x::AbstractA
   param = params(d.dist[i])
   @assert length(param) = length(x)
   for j in 1:length(param)
-     param[j] = x[j] 
+     param[j] = x[j]
   end
-  if length(param) == 1 
+  if length(param) == 1
      d.dist[i] = typeof(d.dist[i])(param[1])
   elseif length(param) == 2
   d.dist[i] = typeof(d.dist[i])(param[1],param[2])
-  elseif length(param) == 3 
+  elseif length(param) == 3
   d.dist[i] = typeof(d.dist[i])(param[1],param[3])
   else
      throw("Too many parameters inside Composite Distribution.")
@@ -95,9 +95,9 @@ end
 ### Basic statistics
 
 mean(d::GenericCompositeContinuousDist, idx::Integer) = mean(d.dist[idx])
-function mean(d::GenericCompositeContinuousDist) 
+function mean(d::GenericCompositeContinuousDist)
   n = length(d)
-  mu = Array{Float64}(undef,n)  
+  mu = Array{Float64}(undef,n)
   for i in 1:length(d.dist)
      mu[d.indices[i]] = mean(d,i)
   end
@@ -105,7 +105,7 @@ function mean(d::GenericCompositeContinuousDist)
 end
 
 mode(d::GenericCompositeContinuousDist, idx::Integer) = mode(d.dist[idx])
-function mode(d::GenericCompositeContinuousDist) 
+function mode(d::GenericCompositeContinuousDist)
   n = length(d)
   mo = Array{Float64}(undef,n)
   for i in 1:length(d.dist)
@@ -115,7 +115,7 @@ function mode(d::GenericCompositeContinuousDist)
 end
 
 var(d::GenericCompositeContinuousDist, idx::Integer) = var(d.dist[idx])
-function var(d::GenericCompositeContinuousDist) 
+function var(d::GenericCompositeContinuousDist)
   n = length(d)
   v = Array{Float64}(undef,n)
   for i in 1:length(d.dist)
@@ -125,7 +125,7 @@ function var(d::GenericCompositeContinuousDist)
 end
 
 cov(d::GenericCompositeContinuousDist, idx::Integer) = cov(d.dist[idx])
-function cov(d::GenericCompositeContinuousDist) 
+function cov(d::GenericCompositeContinuousDist)
   n = length(d)
   covar = zeros(Float64,(n,n) )
   for i in 1:length(d.dist)
@@ -148,10 +148,10 @@ function entropy(d::GenericCompositeContinuousDist)
   return sum =#
 end
 
-### Evaluation 
+### Evaluation
 
 function index(d::GenericCompositeContinuousDist, idx::Integer)
-  # note that this function is intentionally not type stable.  
+  # note that this function is intentionally not type stable.
   # Needs to provide scalar index for univariate distributions or range of indices for multivariate distributions
   #if d.indices[idx].start == d.indices[idx].stop
   if isa(d.dist[idx], UnivariateDistribution)
@@ -170,22 +170,22 @@ function insupport(d::GenericCompositeContinuousDist, x::AbstractVector{T})  whe
 end
 
 function Distributions._logpdf(d::GenericCompositeContinuousDist, x::AbstractArray{T,2}) where T<:Real
-  sum = zeros(T,size(x,2)) 
+  sum = zeros(T,size(x,2))
   for j in 1:size(x,1)
      for i in 1:length(d.dist)
        sum[j] += logpdf(d.dist[i],x[j,index(d,i)])
      end
   end
-  return sum      
+  return sum
 end
 
 function Distributions._logpdf(d::GenericCompositeContinuousDist, x::AbstractArray{T,1}) where T<:Real
-  sum = zero(T) 
+  sum = zero(T)
   for i in 1:length(d.dist)
     #sum += _logpdf(d.dist[i],x[index(d,i)])
     sum += logpdf(d.dist[i],x[index(d,i)])
   end
-  return sum      
+  return sum
 end
 
 function gradlogpdf(d::GenericCompositeContinuousDist, x::DenseVector{T}) where T<:Real
@@ -198,6 +198,7 @@ end
 
 ### Sampling
 
+#=
 function Distributions._rand!(d::GenericCompositeContinuousDist, x::DenseVector{T}) where T<:Real
     for i = 1:length(d.dist)
         _rand!(d.dist[i],view(x,index(d,i)))
@@ -211,11 +212,25 @@ function _rand!(d::GenericCompositeContinuousDist, x::DenseMatrix{T}) where T<:R
     end
     return x
 end
+=#
+function Distributions._rand!(d::GenericCompositeContinuousDist, x::AbstractArray{T,1}) where T<:Real
+    for i = 1:length(d.dist)
+        _rand!(d.dist[i],view(x,index(d,i)))
+    end
+    return x
+end
+
+function _rand!(d::GenericCompositeContinuousDist, x::AbstractArray{T,2}) where T<:Real
+    for i = 1:length(d.dist)
+        _rand!(d.dist[i],view(x,index(d,i),:))   # Check got dimensions right
+    end
+    return x
+end
 
 ### Show
 
 distrname(d::GenericCompositeContinuousDist) = "GenericCompositeContinuous"
-function Base.show(io::IO, d::GenericCompositeContinuousDist) 
+function Base.show(io::IO, d::GenericCompositeContinuousDist)
   print(io,distrname(d) * ":\n")
   for i in 1:length(d.dist)
      show(io, d.dist[i] )

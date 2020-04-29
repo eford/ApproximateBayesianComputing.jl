@@ -125,17 +125,24 @@ end
 
 # Summary Stats & Distances based on Empirical CDF
 # using Distributions
-calc_summary_stats_ecdf(x::AbstractArray) = EmpiricalUnivariateDistribution(x)
+calc_summary_stats_ecdf(x::AbstractArray) = x # EmpiricalUnivariateDistribution(x)
 
 
-function calc_dist_ks(x::EmpiricalUnivariateDistribution, y::EmpiricalUnivariateDistribution)
+#function calc_dist_ks(x::EmpiricalUnivariateDistribution, y::EmpiricalUnivariateDistribution)
+function calc_dist_ks(x::AbstractArray{T1,1}, y::AbstractArray{T2,1}) where {T1<:Real, T2<:Real}
    maxd = 0.0
-   for v in x.values
-     d = abs(cdf(x,v)-cdf(y,v))
+   cdf_x = ecdf(x)
+   cdf_y = ecdf(y)
+   #for v in x.values
+   for v in x
+     #d = abs(cdf(x,v)-cdf(y,v))
+     d = abs(cdf_x(v)-cdf_y(v))
      if d>maxd maxd = d end
    end
-   for v in y.values
-     d = abs(cdf(x,v)-cdf(y,v))
+   #for v in y.values
+   for v in y
+     #d = abs(cdf(x,v)-cdf(y,v))
+     d = abs(cdf_x(v)-cdf_y(v))
      if d>maxd maxd = d end
    end
    maxd
