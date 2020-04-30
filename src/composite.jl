@@ -7,7 +7,7 @@ module CompositeDistributions
 using Compat
 
 if VERSION >= v"0.7"
-  using Statistics
+  #using Statistics
   using Distributed
   import Statistics: mean, median, maximum, minimum, quantile, std, var, cov, cor
 else
@@ -32,7 +32,8 @@ export length, params, set_params!, mean, mode, var, cov, entropy
 export insupport, _logpdf, gradlogpdf, _rand!
 
 
-@compat abstract type AbstractCompositeContinuousDist <: ContinuousMultivariateDistribution end
+#@compat abstract type AbstractCompositeContinuousDist <: ContinuousMultivariateDistribution end
+abstract type AbstractCompositeContinuousDist <: ContinuousMultivariateDistribution end
 #@compat abstract type AbstractCompositeDiscreteDist <: DiscreteMultivariateDistribution  end # An idea, but not implemented yet
 
 struct GenericCompositeContinuousDist <: AbstractCompositeContinuousDist

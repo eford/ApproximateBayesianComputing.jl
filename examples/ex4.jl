@@ -179,8 +179,14 @@ println("***************************************************")
 # Run ABC simulation
 @time pop_out = run_abc(abc_plan,ss_true, verbose=true);
 
-using JLD
-save("ex4_out.jld", "pop_out", pop_out)
+if (Base.find_package("JLD2") != nothing) && (Base.find_package("FileIO") != nothing)
+
+using JLD2, FileIO
+save("ex4_out.jld2", "pop_out", pop_out)
+
+end
+
+if Base.find_package("PyPlot") != nothing
 
 using PyPlot
 function plot_abc_posterior(theta_plot::Array{Float64,2}, index::Integer)
@@ -213,3 +219,5 @@ plot_abc_posterior(theta_plot,1)
 med_dist = median(dist_plot)
 plot_abc_posterior(theta_plot[:,find(dist_plot.<=med_dist)],1)
 =#
+
+end

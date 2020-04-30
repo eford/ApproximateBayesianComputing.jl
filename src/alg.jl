@@ -47,7 +47,7 @@ function generate_theta(plan::abc_pmc_plan_type, sampler::Distribution, ss_true,
              accept_prob += 1.0
            end
          end
-         accept_prob /= plan.num_dist_per_obs 
+         accept_prob /= plan.num_dist_per_obs
 
          accept = rand() < accept_prob
 
@@ -99,7 +99,7 @@ function run_abc(plan::abc_pmc_plan_type, ss_true, pop::abc_population_type; ver
   eps_diff_count = 0
 
   # Uncomment for generation info output to log file
-  #  
+  #
   if verbose
      f_log = open("generation_log.txt", "w")
   end
@@ -109,7 +109,7 @@ function run_abc(plan::abc_pmc_plan_type, ss_true, pop::abc_population_type; ver
   #
   eps_arr = []
   mean_arr = []
-  std_arr = []  
+  std_arr = []
   #
 
   for t in 1:plan.num_max_times
@@ -138,7 +138,7 @@ function run_abc(plan::abc_pmc_plan_type, ss_true, pop::abc_population_type; ver
        flush(f_log)
        #save(string("gen-",t,".jld"), "pop_out", pop, "ss_true", ss_true)
        #
-        
+
     end
     # Uncomment for history output at end of run to terminal
     #
@@ -189,7 +189,7 @@ function run_abc(plan::abc_pmc_plan_type, ss_true, pop::abc_population_type; ver
      close(f_log)
   end
   #
-  
+
   return pop
 end
 
@@ -214,5 +214,3 @@ function choose_epsilon_adaptive(pop::abc_population_type, sampler::Distribution
   println("# Estimated target quantile is ", optimal_target_quantile, " using ",target_quantile_this_itteration, " resulting in epsilon = ", epsilon)
   return epsilon
 end
-
-

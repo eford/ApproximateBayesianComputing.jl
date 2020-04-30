@@ -4,7 +4,7 @@ module TransformedBetaDistributions
 
 
 if VERSION >= v"0.7"
-  using Statistics
+  #using Statistics
   using Distributed
   import Statistics: mean, median, maximum, minimum, quantile, std, var, cov, cor
 else

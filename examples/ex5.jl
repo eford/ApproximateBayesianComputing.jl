@@ -2,9 +2,6 @@ using ApproximateBayesianComputing
 const ABC = ApproximateBayesianComputing
 using Distributions, Random
 
-# Currently, hackishly included from ABC, but in the ABC namespace
-#include(joinpath(dirname(pathof(ApproximateBayesianComputing)),"composite.jl"))
-#include(joinpath(dirname(pathof(ApproximateBayesianComputing)),"beta_linear_transformed.jl"))
 import ApproximateBayesianComputing.CompositeDistributions.CompositeDist
 import ApproximateBayesianComputing.TransformedBetaDistributions.LinearTransformedBeta
 
@@ -12,20 +9,40 @@ Random.seed!(1234)
 
 # Function to adjust originally proposed model parameters, so that they will be valid
 function normalize_theta!(theta::Array)
-  @views theta[2:end]./= sum(theta[2:end])
-  theta
+  theta[2:end]./= sum(theta[2:end])
+  return theta
 end
 
 # Set Prior for Population Parameters
-max_rate = 3.
-nbins = 13
-theta_true = vcat(max_rate*0.1,rand(nbins))
+max_rate = 3.0
+nbins = 4
+theta_true = vcat(1.0,[1.0,2.0,3.0,4.0])
 normalize_theta!(theta_true)
 
-param_prior = CompositeDist(vcat(Uniform(0.0,max_rate),ContinuousDistribution[Uniform(0.0,1.0) for i in 1:nbins]))
+#param_prior = CompositeDist(vcat(Uniform(0.0,max_rate),ContinuousDistribution[Uniform(0.0,1.0) for i in 1:nbins])
+param_prior = CompositeDist([Uniform(0.0,max_rate),Dirichlet(theta_true[2:end])])
 
 # Function to test if the proposed model parameter are valid
-is_valid(theta::Array) = all([minimum(param_prior.dist[i])<=theta[i]<=maximum(param_prior.dist[i]) for i in 1:length(theta)])
+function is_valid(theta::Array)
+    # Test total rate parameter from uniform distribution
+    if !(minimum(param_prior.dist[1])<=theta[1]<=maximum(param_prior.dist[1]))
+        return false
+    end
+    # Test parametrs of categorical distribution
+    #=
+    if !all([0<=theta[i]<=1 for i in 2:length(theta)])
+        return false
+    end
+
+    if !isapprox(sum(theta[2:end]),1.0)
+        return false
+    end
+    =#
+    if !Distributions.isprobvec(theta[2:end])
+        return false
+    end
+    return true
+end
 
 # Code to generate simulated data given array of model parameters
 num_data_default = 1000
@@ -36,13 +53,13 @@ function draw_dirchlet_multinomial_with_poisson_rate(theta::Array)
    for i in 1:n
      counts[rand(d_cat)] += 1
    end
-   counts
+   return counts
 end
 
 function gen_data(theta::Array, n::Integer = num_data_default)
    data = Array{Int64}( undef, (length(theta)-1, n) )
    for i in 1:n
-      data[:,i] = draw_dirchlet_multinomial_with_poisson_rate(theta)
+      data[:,i] .= draw_dirchlet_multinomial_with_poisson_rate(theta)
    end
    data
 end
@@ -212,18 +229,23 @@ function make_proposal_dist_multidim_beta(theta::AbstractArray{Float64,2}, weigh
 end
 
 function make_proposal_dist_multidim_beta(pop::abc_population_type, tau_factor::Float64; verbose::Bool = false)
-	make_proposal_dist_multidim_beta(pop.theta, pop.weights, tau_factor, verbose=verbose)
+	make_proposal_dist_multidim_beta(pop.theta, pop.weights, tau_factor, verbose=true) #verbose)
 end
 
 
 
 # Tell ABC what it needs to know for a simulation
-abc_plan = abc_pmc_plan_type(gen_data,calc_mean_per_bin,calc_dist_l1, param_prior; is_valid=is_valid,normalize=normalize_theta!,make_proposal_dist=make_proposal_dist_multidim_beta,epsilon_reduction_factor=0.501,tau_factor=1.1,target_epsilon=0.00001*nbins,num_max_attempt=1000);
+abc_plan = abc_pmc_plan_type(gen_data,calc_mean_per_bin,calc_dist_l1, param_prior;
+                is_valid=is_valid,normalize=normalize_theta!,
+                make_proposal_dist=make_proposal_dist_multidim_beta,
+                epsilon_reduction_factor=0.501,tau_factor=1.1,target_epsilon=0.00001*nbins,
+                num_part=20,num_max_attempt=100
+                );
 
 # Generate "true/observed data" and summary statistics
 data_true = abc_plan.gen_data(theta_true)
 ss_true = abc_plan.calc_summary_stats(data_true)
-#println("theta= ",theta_true," ss= ",ss_true, " d= ", 0.)
+println("theta_true = ",theta_true," ss_true = ",ss_true, " d= 0")
 
 # Run ABC simulation
 @time pop_out = run_abc(abc_plan,ss_true;verbose=true);

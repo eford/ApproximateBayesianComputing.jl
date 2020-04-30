@@ -4,7 +4,7 @@ using Compat
 using Distributions
 
 if VERSION >= v"0.7"
-  using Statistics
+  #using Statistics
   using Distributed
   import Statistics: mean, median, maximum, minimum, quantile, std, var, cov, cor
 else
@@ -62,7 +62,7 @@ function mean(d::GaussianMixtureModelCommonCovarAbstract)
     return m
 end
 
-function pdf(d::GaussianMixtureModelCommonCovar, x::Array{Float64,1} )
+function pdf(d::GaussianMixtureModelCommonCovar, x::AbstractArray{Float64,1} )
     p = 0.0
     for i in 1:length(d.probs)
         if d.probs[i]<=0.0 continue end
@@ -71,7 +71,7 @@ function pdf(d::GaussianMixtureModelCommonCovar, x::Array{Float64,1} )
     return p
 end
 
-function pdf(d::GaussianMixtureModelCommonCovar, x::Array{Float64,2} )
+function pdf(d::GaussianMixtureModelCommonCovar, x::AbstractArray{Float64,2} )
     np = size(x,2)
     p = zeros(np)
     for i in 1:length(d.probs)
@@ -81,7 +81,7 @@ function pdf(d::GaussianMixtureModelCommonCovar, x::Array{Float64,2} )
     return p
 end
 
-function _logpdf(d::GaussianMixtureModelCommonCovar, x::Array{Float64,1})
+function _logpdf(d::GaussianMixtureModelCommonCovar, x::AbstractArray{Float64,1})
     logp = -Inf
     for i in 1:length(d.probs)
         if d.probs[i]<=0.0 continue end
@@ -91,7 +91,7 @@ function _logpdf(d::GaussianMixtureModelCommonCovar, x::Array{Float64,1})
     return logp
 end
 
-function _logpdf(d::GaussianMixtureModelCommonCovar, x::Array{Float64,2})
+function _logpdf(d::GaussianMixtureModelCommonCovar, x::AbstractArray{Float64,2})
     np = size(x,2)
     logp = fill(-Inf,np)
     for i in 1:length(d.probs)
@@ -145,7 +145,7 @@ end
 
 length(d::GaussianMixtureModelCommonCovarTruncated) = size(d.mu,1)
 
-function pdf(d::GaussianMixtureModelCommonCovarTruncated, x::Array{Float64,1} )
+function pdf(d::GaussianMixtureModelCommonCovarTruncated, x::AbstractArray{Float64,1} )
     p = 0.0
     normalization = cdf(Distributions.Chisq(length(x)),d.max_mahalanobis)
     for i in 1:length(d.probs)
@@ -157,7 +157,7 @@ function pdf(d::GaussianMixtureModelCommonCovarTruncated, x::Array{Float64,1} )
     return p
 end
 
-function pdf(d::GaussianMixtureModelCommonCovarTruncated, x::Array{Float64,2} )
+function pdf(d::GaussianMixtureModelCommonCovarTruncated, x::AbstractArray{Float64,2} )
     np = size(x,2)
     p = zeros(np)
     normalization = cdf(Distributions.Chisq(length(x)),d.max_mahalanobis)
@@ -169,7 +169,7 @@ function pdf(d::GaussianMixtureModelCommonCovarTruncated, x::Array{Float64,2} )
     return p
 end
 
-function _logpdf(d::GaussianMixtureModelCommonCovarTruncated, x::Array{Float64,1})
+function _logpdf(d::GaussianMixtureModelCommonCovarTruncated, x::AbstractArray{Float64,1})
     logp = -Inf
     log_normalization = logcdf(Distributions.Chisq(length(x)),d.max_mahalanobis)
     for i in 1:length(d.probs)
@@ -182,7 +182,7 @@ function _logpdf(d::GaussianMixtureModelCommonCovarTruncated, x::Array{Float64,1
     return logp
 end
 
-function _logpdf(d::GaussianMixtureModelCommonCovarTruncated, x::Array{Float64,2})
+function _logpdf(d::GaussianMixtureModelCommonCovarTruncated, x::AbstractArray{Float64,2})
     np = size(x,2)
     logp = fill(-Inf,np)
     log_normalization = logcdf(Distributions.Chisq(length(x)),d.max_mahalanobis)
@@ -288,7 +288,7 @@ function pdf(d::GaussianMixtureModelCommonCovarSubset, x::Vector{Float64} )
     return p
 end
 
-function pdf(d::GaussianMixtureModelCommonCovarSubset, x::Array{Float64,2} )
+function pdf(d::GaussianMixtureModelCommonCovarSubset, x::AbstractArray{Float64,2} )
     np = size(x,2)
     p = zeros(np)
     for i in 1:length(d.probs)
@@ -308,7 +308,7 @@ function _logpdf(d::GaussianMixtureModelCommonCovarSubset, x::Vector{Float64})
     return logp
 end
 
-function _logpdf(d::GaussianMixtureModelCommonCovarSubset, x::Array{Float64,2})
+function _logpdf(d::GaussianMixtureModelCommonCovarSubset, x::AbstractArray{Float64,2})
     np = size(x,2)
     logp = fill(-Inf,np)
     for i in 1:length(d.probs)

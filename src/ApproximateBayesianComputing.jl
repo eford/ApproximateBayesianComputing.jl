@@ -8,7 +8,7 @@ const ABC = ApproximateBayesianComputing
 
 # package code goes here
 
-using Distributions
+#using Distributions
 using PDMats
 using DistributedArrays
 using Compat
