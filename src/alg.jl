@@ -196,7 +196,9 @@ end
 # run the ABC algorithm matching to summary statistics ss_true
 function run_abc(plan::abc_pmc_plan_type, ss_true; verbose::Bool = false, print_every::Integer=1, in_parallel::Bool =  plan.in_parallel )                         # Initialize population, drawing from prior
   pop::abc_population_type = init_abc(plan,ss_true, in_parallel=in_parallel)
-  #println("pop_init: ",pop)
+  if verbose
+      println("pop_init: ",pop)
+  end
   run_abc(plan, ss_true, pop; verbose=verbose, print_every=print_every, in_parallel=in_parallel )
 end
 

@@ -101,7 +101,7 @@ function mean(d::GenericCompositeContinuousDist)
   n = length(d)
   mu = Array{Float64}(undef,n)
   for i in 1:length(d.dist)
-     mu[d.indices[i]] = mean(d,i)
+     mu[d.indices[i]] .= mean(d,i)
   end
   return mu
 end
@@ -111,7 +111,7 @@ function mode(d::GenericCompositeContinuousDist)
   n = length(d)
   mo = Array{Float64}(undef,n)
   for i in 1:length(d.dist)
-     mo[d.indices[i]] = mode(d,i)
+     mo[d.indices[i]] .= mode(d,i)
   end
   return mo
 end
@@ -121,7 +121,7 @@ function var(d::GenericCompositeContinuousDist)
   n = length(d)
   v = Array{Float64}(undef,n)
   for i in 1:length(d.dist)
-     v[d.indices[i]] = var(d,i)
+     v[d.indices[i]] .= var(d,i)
   end
   return v
 end
@@ -132,9 +132,9 @@ function cov(d::GenericCompositeContinuousDist)
   covar = zeros(Float64,(n,n) )
   for i in 1:length(d.dist)
      if length(d.dist[i]) == 1
-        covar[d.indices[i]] = var(d,i)
+        covar[d.indices[i]] .= var(d,i)
      else
-        covar[d.indices[i],d.indices[i]] = cov(d,i)
+        covar[d.indices[i],d.indices[i]] .= cov(d,i)
      end
   end
   return covar
@@ -218,12 +218,17 @@ end
 function Distributions._rand!(rng::AbstractRNG, d::GenericCompositeContinuousDist, x::AbstractArray{T,1}) where T<:Real
     for i = 1:length(d.dist)
         #_rand!(rng,d.dist[i],view(x,index(d,i)))
+        #_rand!(rng,d.dist[i],x[index(d,i)])
         x[index(d,i)] = rand(rng,d.dist[i])
+#=        if i==1
+            println("x[1] = ", x[1]," vs mean = ",mean(d.dist[i]))
+        end
+        =#
     end
     return x
 end
 
-function _rand!(rng::AbstractRNG, d::GenericCompositeContinuousDist, x::AbstractArray{T,2}) where T<:Real
+function Distributions._rand!(rng::AbstractRNG, d::GenericCompositeContinuousDist, x::AbstractArray{T,2}) where T<:Real
     for i = 1:length(d.dist)
         _rand!(rng,d.dist[i],view(x,index(d,i),:))   # Check got dimensions right
     end

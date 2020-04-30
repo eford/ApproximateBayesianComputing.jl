@@ -4,7 +4,7 @@ function generate_abc_sample_serial(plan::abc_pmc_plan_type, sampler::Distributi
   theta_plot = Array{Float64}(undef,num_param, n)
   dist_plot = Array{Float64}(undef,n)
   for i in 1:n
-    theta_plot[:,i], dist_plot[i], attempts_plot, accept_log_plot, reject_log_plot = ABC.generate_theta(abc_plan, sampler, ss_true, epsilon)
+    theta_plot[:,i], dist_plot[i], attempts_plot, accept_log_plot, reject_log_plot = ABC.generate_theta(plan, sampler, ss_true, epsilon)
   end
   return theta_plot, dist_plot
 end
@@ -143,7 +143,7 @@ function run_abc(plan::abc_pmc_plan_type, ss_true, pop::abc_population_type; ver
     end
   end # t / num_times
  #println("mean(theta) = ",[ sum(pop.theta[i,:])/size(pop.theta,2) for i in 1:size(pop.theta,1) ])
-  if verbose 
+  if verbose
      println("# Epsilon history = ", pop.accept_log.epsilon)
      #println("Epsilon history = ", eps_arr)
      #println("Mean history = ", mean_arr)
@@ -152,5 +152,3 @@ function run_abc(plan::abc_pmc_plan_type, ss_true, pop::abc_population_type; ver
   return pop
 end
 =#
-
-

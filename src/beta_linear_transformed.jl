@@ -23,6 +23,7 @@ import Distributions.quantile, Distributions.insupport
 import Distributions.minimum, Distributions.maximum
 import Distributions.mean, Distributions.var
 import Distributions.mode, Distributions.modes
+import Random.AbstractRNG
 
 export LinearTransformedBeta
 export params, rand, pdf, logpdf, cdf, gradlogpdf, quantile, insupport
@@ -58,6 +59,7 @@ params(d::LinearTransformedBeta) = (d.dist.α, d.dist.β,d.xmin,d.xmax)
 
 ### Sampling
 rand(d::LinearTransformedBeta) = d.xmin+(d.xmax-d.xmin)*rand(d.dist)
+rand(rng::AbstractRNG, d::LinearTransformedBeta) = d.xmin+(d.xmax-d.xmin)*rand(rng,d.dist)
 #sampler
 
 ### Evaluation
@@ -80,6 +82,7 @@ end
 
 ### Basic statistics
 mean(d::LinearTransformedBeta) = d.xmin+(d.xmax-d.xmin)*mean(d.dist)
+std(d::LinearTransformedBeta) = (d.xmax-d.xmin)*std(d.dist)
 var(d::LinearTransformedBeta) = (d.xmax-d.xmin)^2*var(d.dist)
 mode(d::LinearTransformedBeta) = d.xmin+(d.xmax-d.xmin)*mode(d.dist)
 modes(d::LinearTransformedBeta) = d.xmin.+(d.xmax-d.xmin).*modes(d.dist)
@@ -94,7 +97,8 @@ modes(d::LinearTransformedBeta) = d.xmin.+(d.xmax-d.xmin).*modes(d.dist)
 
 distrname(d::LinearTransformedBeta) = "LinearTransformedBeta"
 function Base.show(io::IO, d::LinearTransformedBeta)
-  show(io,distrname(d) * "(α=" * string(d.dist.α) * ", β=" * string(d.dist.β) * ", min=" * string(d.xmin) * " ,max=" * string(d.xmax) * ")" )
+  show(io,distrname(d) * "(α=" * string(d.dist.α) * ", β=" * string(d.dist.β) * ", min=" * string(d.xmin) * " ,max=" * string(d.xmax) * ")" * ", mean=" * string(mean(d)) * " std=" * string(std(d)))
+  #d.xmin+(d.xmax-d.xmin)*d.dist.α/(d.dist.α+d.dist.β)) * ", std=" * string((d.xmax-d.xmin)*sqrt(d.dist.α*d.dist.β/(d.dist.α*d.dist.β)^2/(d.dist.α+d.dist.β+1))) )
 end
 
 end # module
